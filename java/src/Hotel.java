@@ -401,7 +401,22 @@ public class Hotel {
 // Rest of the functions definition go in here
 
    public static void viewHotels(Hotel esql) {}
-   public static void viewRooms(Hotel esql) {}
+   public static void viewRooms(Hotel esql) {
+      try{
+         System.out.print("\tEnter hotelID: ");
+         String hotelID = in.readLine();
+         System.out.print("\tEnter date: ");
+         String date = in.readLine();
+
+         String query = String.format("");
+         int userNum = esql.executeQuery(query);
+
+         return null;
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return null;
+      }
+   }
    public static void bookRooms(Hotel esql) {}
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
    public static void updateRoomInfo(Hotel esql) {}
