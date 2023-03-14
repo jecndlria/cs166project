@@ -424,7 +424,10 @@ public class Hotel {
             System.out.print("\nInvalid longitude. Please enter another value: ");
          }
          System.out.println("\nLongitude: " + longitude);
-         
+
+         String query = String.format("SELECT hotelID, hotelName, dateEstablished FROM Hotel WHERE calculate_distance(%f, %f, latitude, longitude) <= 30;", latitude, longitude);
+         int rows = esql.executeQueryAndPrintResult(query);
+         System.out.println("\nTotal number of hotels within 30 units of your location: " + rows);
       }catch(Exception e){
          System.err.println (e.getMessage ());
       }
