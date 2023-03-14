@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.util.Scanner;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -400,7 +401,34 @@ public class Hotel {
 
 // Rest of the functions definition go in here
 
-   public static void viewHotels(Hotel esql) {}
+   public static void viewHotels(Hotel esql) 
+   {
+      try{
+         double latitude = 100;
+         double longitude = 1000;
+         Scanner scanner = new Scanner(System.in);
+         System.out.print("\nEnter Latitude: ");
+         while(latitude >= 90 || latitude <= -90)
+         {
+            latitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
+            if (latitude >= 90 || latitude <= -90)
+            System.out.print("\nInvalid latitude. Please enter another value: ");
+
+         }
+         System.out.println("\nLatitude: " + latitude);
+         System.out.print("\nEnter Longitude: ");
+         while(longitude >= 180 || longitude <= -180)
+         {
+            longitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
+            if (longitude >= 180 || longitude <= -180)
+            System.out.print("\nInvalid longitude. Please enter another value: ");
+         }
+         System.out.println("\nLongitude: " + longitude);
+         
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+   }
    public static void viewRooms(Hotel esql) {}
    public static void bookRooms(Hotel esql) {}
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
