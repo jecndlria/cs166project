@@ -405,12 +405,15 @@ public class Hotel {
       try{
          System.out.print("\tEnter hotelID: ");
          String hotelID = in.readLine();
-         System.out.print("\tEnter date: ");
+         System.out.print("\tEnter date (in the form month/day/year): ");
          String date = in.readLine();
 
-         String query = String.format("");
+         String query = String.format(
+            "SELECT r.roomNumber, r.price " +
+            "FROM Rooms r " +
+            "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
+            "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = %s);", hotelID, date);
          int userNum = esql.executeQuery(query);
-
          return null;
       }catch(Exception e){
          System.err.println (e.getMessage ());
