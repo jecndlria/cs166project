@@ -412,7 +412,7 @@ public class Hotel {
             "SELECT r.roomNumber, r.price " +
             "FROM Rooms r " +
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
-            "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = %s);", hotelID, date);
+            "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
          int userNum = esql.executeQuery(query);
          return null;
       }catch(Exception e){
