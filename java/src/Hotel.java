@@ -413,16 +413,39 @@ public class Hotel {
             "FROM Rooms r " +
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
-         int userNum = esql.executeQuery(query);
-         return null;
+         int available_rooms = esql.executeQuery(query);
       }catch(Exception e){
          System.err.println (e.getMessage ());
-         return null;
       }
    }
    public static void bookRooms(Hotel esql) {}
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
-   public static void updateRoomInfo(Hotel esql) {}
+   public static void updateRoomInfo(Hotel esql) {
+      try{
+         System.out.print("\tYou must be a manager to update room info. Enter userID: ");
+         String userID = in.readLine();
+         System.out.print("\tEnter password: ");
+         String password = in.readLine();
+         String user_query = String.format("SELECT u.userType FROM Users u WHERE userID = '%s' AND password = '%s'", userID, password);
+         int user_type = esql.executeQuery(query);
+
+         if(user_type == 'manager'){
+            System.out.print("\tEnter hotelID: ");
+            String hotelID = in.readLine();
+            System.out.print("\tEnter room number: ");
+            String roomNumber = in.readLine();
+            String query = String.format("SELECT "
+            
+            );
+            int update_info = esql.executeQuery(query);
+         }else{
+            System.out.print("\tYou must be a manager to update room info.");
+         }
+
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+   }
    public static void viewRecentUpdates(Hotel esql) {}
    public static void viewBookingHistoryofHotel(Hotel esql) {}
    public static void viewRegularCustomers(Hotel esql) {}
