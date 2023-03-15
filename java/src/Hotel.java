@@ -415,10 +415,10 @@ public class Hotel {
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
          int userNum = esql.executeQuery(query);
-         return null;
+         // return null;
       }catch(Exception e){
          System.err.println (e.getMessage ());
-         return null;
+         // return null;
       }
    }
    public static void viewHotels(Hotel esql) 
@@ -459,13 +459,13 @@ public class Hotel {
          int hotelID;
          int roomNumber;
          String date = "";
-         String dateRegex = "^(202[3-9]|20[3-9][0-9])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$";
+         String dateRegex = "^(0[1-9]|1[0-2])\\/([0-2][1-9]|3[0-1])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          System.out.println("\nEnter a Hotel ID: ");
          hotelID = scanner.nextInt();
          System.out.println("\nEnter a room number: ");
          roomNumber = scanner.nextInt();
-         System.out.println("Enter a date in the format of YYYY-MM-DD: ");
+         System.out.println("Enter a date in the format of MM/DD/YYYY: ");
          Matcher matcher = pattern.matcher(date);
 
          while (!matcher.find())
@@ -477,6 +477,7 @@ public class Hotel {
             else break;
          }
 
+         
          
       }catch(Exception e){
          System.err.println (e.getMessage ());
