@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
 import java.util.Scanner;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /**
  * This class defines a simple embedded SQL utility class that is designed to
  * work with PostgreSQL JDBC drivers.
@@ -433,7 +434,36 @@ public class Hotel {
       }
    }
    public static void viewRooms(Hotel esql) {}
-   public static void bookRooms(Hotel esql) {}
+   public static void bookRooms(Hotel esql) 
+   {
+      try{
+         Scanner scanner = new Scanner(System.in);
+         int hotelID;
+         int roomNumber;
+         String date = "";
+         String dateRegex = "^(202[3-9]|20[3-9][0-9])-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$";
+         Pattern pattern = Pattern.compile(dateRegex);
+         System.out.println("\nEnter a Hotel ID: ");
+         hotelID = scanner.nextInt();
+         System.out.println("\nEnter a room number: ");
+         roomNumber = scanner.nextInt();
+         System.out.println("Enter a date in the format of YYYY-MM-DD: ");
+         Matcher matcher = pattern.matcher(date);
+
+         while (!matcher.find())
+         {
+            date = in.readLine();
+            matcher = pattern.matcher(date);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+   }
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
    public static void updateRoomInfo(Hotel esql) {}
    public static void viewRecentUpdates(Hotel esql) {}
