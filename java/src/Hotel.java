@@ -306,7 +306,7 @@ public class Hotel {
                    case 5: updateRoomInfo(esql); break;
                    case 6: viewRecentUpdates(esql); break;
                    case 7: viewBookingHistoryofHotel(esql, authorisedUser); break;
-                   case 8: viewRegularCustomers(esql); break;
+                   case 8: viewRegularCustomers(esql, authorisedUser); break;
                    case 9: placeRoomRepairRequests(esql); break;
                    case 10: viewRoomRepairHistory(esql); break;
                    case 20: usermenu = false; break;
@@ -426,19 +426,19 @@ public class Hotel {
          double longitude = 1000;
          Scanner scanner = new Scanner(System.in);
          System.out.print("\nEnter Latitude: ");
-         while(latitude >= 90 || latitude <= -90)
+         while(latitude > 90 || latitude < -90)
          {
             latitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
-            if (latitude >= 90 || latitude <= -90)
+            if (latitude > 90 || latitude < -90)
             System.out.print("\nInvalid latitude. Please enter another value: ");
 
          }
          System.out.println("\nLatitude: " + latitude);
          System.out.print("\nEnter Longitude: ");
-         while(longitude >= 180 || longitude <= -180)
+         while(longitude > 180 || longitude < -180)
          {
             longitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
-            if (longitude >= 180 || longitude <= -180)
+            if (longitude > 180 || longitude < -180)
             System.out.print("\nInvalid longitude. Please enter another value: ");
          }
          System.out.println("\nLongitude: " + longitude);
@@ -555,17 +555,51 @@ public class Hotel {
             "SELECT B.bookingID, U.name, B.hotelID, B.roomNumber, B.bookingDate " +
             "FROM RoomBookings B, Users U, Hotel H " +
             "WHERE H.hotelID = B.hotelID AND B.customerID = U.userID " +
-            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s';", lowerBoundDate, upperBoundDate
+            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s' " +
+            "ORDER BY B.bookingDate ASC;" , lowerBoundDate, upperBoundDate
          );
 
          int rows = esql.executeQueryAndPrintResult(query);
-         System.out.println("\nTotal number of bookings for your hotels: " + rows);
+         System.out.println("\nTotal number of bookings for your hotels within the range of " + lowerBoundDate + " and " + upperBoundDate + ": " + rows);
 
          }catch(Exception e){
          System.err.println (e.getMessage());
          }
    }
-   public static void viewRegularCustomers(Hotel esql) {}
+   public static void viewRegularCustomers(Hotel esql, String userID) 
+   {
+      try{
+         String checkManager = String.format(
+            "SELECT userType " +
+            "FROM Users " +
+            "WHERE (userType = 'manager' OR userType = 'admin') AND userID = %s;", userID
+         );
+         int isManager = esql.executeQuery(checkManager);
+         if (isManager == 0)
+         {
+            System.out.println("\nYou do not have permission for this option!");
+            return;
+         }
+         Scanner scanner = new Scanner(System.in);
+         int hotelID;
+         System.out.println("\nEnter a hotel ID: ");
+         hotelID = scanner.nextInt();
+
+         String query = String.format(
+            "SELECT U.name, COUNT(*) as NumBookings " +
+            "FROM Users U, RoomBookings B " +
+            "WHERE U.userID = B.customerID AND B.hotelID = %d" +
+            "GROUP BY U.name " +
+            "ORDER BY NumBookings DESC " +
+            "LIMIT 5", hotelID
+         );
+
+         int rows = esql.executeQueryAndPrintResult(query);
+
+         }catch(Exception e){
+         System.err.println (e.getMessage());
+         }
+   }
    public static void placeRoomRepairRequests(Hotel esql) {}
    public static void viewRoomRepairHistory(Hotel esql) {}
 
