@@ -301,7 +301,7 @@ public class Hotel {
                 switch (readChoice()){
                    case 1: viewHotels(esql); break;
                    case 2: viewRooms(esql); break;
-                   case 3: bookRooms(esql); break;
+                   case 3: bookRooms(esql, authorisedUser); break;
                    case 4: viewRecentBookingsfromCustomer(esql); break;
                    case 5: updateRoomInfo(esql); break;
                    case 6: viewRecentUpdates(esql); break;
@@ -452,7 +452,7 @@ public class Hotel {
          System.err.println (e.getMessage ());
       }
    }
-   public static void bookRooms(Hotel esql) 
+   public static void bookRooms(Hotel esql, String userID) 
    {
       try{
          Scanner scanner = new Scanner(System.in);
@@ -477,7 +477,29 @@ public class Hotel {
             else break;
          }
 
+         String query = String.format(
+            "SELECT H.hotelID, R.price, R.roomNumber " +
+            "FROM Rooms R, Hotel H " +
+            "WHERE H.hotelID = %d AND R.hotelID = %d AND R.roomNumber = %d AND NOT EXISTS(" +
+            "SELECT B.roomNumber " +
+            "FROM RoomBookings B " +
+            "WHERE H.hotelID = %d AND B.roomNumber = %d AND bookingDate = '%s');", hotelID, hotelID, roomNumber, hotelID, roomNumber, date);
          
+         int rows = esql.executeQueryAndPrintResult(query);
+
+         if (rows == 0)
+         {
+            System.out.println("\nSorry, this room is not available at this date.");
+            return;
+         }
+
+         String query2 = String.format(
+            "INSERT INTO RoomBookings (customerID, hotelID, roomNumber, bookingDate) VALUES ('%s', %d, %d, '%s');",
+            userID, hotelID, roomNumber, date
+         );
+
+         esql.executeUpdate(query2);
+         System.out.println("Booking made for " + date + " in Hotel " + hotelID + ", Room " + roomNumber);
          
       }catch(Exception e){
          System.err.println (e.getMessage ());
