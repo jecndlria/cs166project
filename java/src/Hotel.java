@@ -475,47 +475,23 @@ public class Hotel {
          int hotels_managed = esql.executeQuery(hotels_managed);
 
          if(hotels_managed > 0){
-            //System.out.println("M");
-            System.out.println("---------");
-            System.out.println("1. Update Room Information");
-            System.out.println("2. View Recent Updates");
-            System.out.println("Please make your choice: ");
-            String choice = in.readLine();
-            while(choice.equals("1") || choice != "2"){
-               System.out.println("---------");
-               System.out.println("Invalid choice!");
-               System.out.println("1. Update Room Information");
-               System.out.println("2. View Recent Updates");
-               System.out.println("Please make your choice: ");
-               String choice = in.readLine();
-            }
-            if(choice == "1"){
-               //update room info
-               System.out.print("\tEnter room number to update: ");
-               String roomNumber = in.readLine();
-               System.out.print("\tUpdate price: ");
-               String price = in.readLine();
-               System.out.print("\tUpdate image url: ");
-               String image_url = in.readLine();
+            //update room info
+            System.out.print("\tEnter room number to update: ");
+            String roomNumber = in.readLine();
+            System.out.print("\tUpdate price: ");
+            String price = in.readLine();
+            System.out.print("\tUpdate image url: ");
+            String image_url = in.readLine();
 
-               String query = String.format("UPDATE Rooms " +
-               "SET price = %s, imageURL = %s " +
-               "WHERE roomNumber = %s;", price, image_url, roomNumber);
-               int update_info = esql.executeQuery(query);
+            String query = String.format("UPDATE Rooms " +
+            "SET price = %s, imageURL = %s " +
+            "WHERE roomNumber = %s;", price, image_url, roomNumber);
+            int update_info = esql.executeQuery(query);
 
-               //put timestamp stuff here
-               String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn) " +
-               "VALUES (%s, %s, %s, %s);", userID, hotelID, roomNumber, timestamp);
-               int update_info = esql.executeQuery(query2);
-
-            }else if(choice == "2"){
-               //view recent updates
-               String query3 = String.format("(SELECT * FROM roomUpdatesLog ORDER BY updatedOn DESC LIMIT 5)");
-               int last_updated = esql.executeQuery(query3);
-            }else{
-               System.out.print("Error");
-            }
-
+            //put timestamp stuff here
+            String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn) " +
+            "VALUES (%s, %s, %s, %s);", userID, hotelID, roomNumber, timestamp);
+            int update_info = esql.executeQuery(query2);
          }else{
             System.out.print("\tYou cannot update the room info of a hotel you do not manage.");
          }
@@ -524,7 +500,20 @@ public class Hotel {
          System.err.println (e.getMessage ());
       }
    }
-   public static void viewRecentUpdates(Hotel esql) {}
+   public static void viewRecentUpdates(Hotel esql, String userID) {
+      String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND (u.userType = 'manager' OR u.userType = 'admin');", userID);
+      int user_type = esql.executeQuery(user_query);
+
+      if(user_type == 0){
+         System.out.print("\tYou must be a manager to update room info.");
+         return;
+      }
+
+      System.out.print("\tViewing the last 5 recent updates...")
+      String query3 = String.format("(SELECT * FROM roomUpdatesLog ORDER BY updatedOn DESC LIMIT 5)");
+      int last_updated = esql.executeQuery(query3);
+
+   }
    public static void viewBookingHistoryofHotel(Hotel esql) {}
    public static void viewRegularCustomers(Hotel esql) {}
    public static void placeRoomRepairRequests(Hotel esql) {}
