@@ -457,7 +457,7 @@ public class Hotel {
          int hotelID;
          int roomNumber;
          String date = "";
-         String dateRegex = "^(0[1-9]|1[0-2])\\/([0-2][1-9]|3[0-1])\\/\\d{4}$";
+         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          System.out.println("\nEnter a Hotel ID: ");
          hotelID = scanner.nextInt();
@@ -519,10 +519,51 @@ public class Hotel {
          if (isManager == 0)
          {
             System.out.println("\nYou do not have permission for this option!");
+            return;
          }
+
+         String lowerBoundDate = "";
+         String upperBoundDate = "";
+         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         Pattern pattern = Pattern.compile(dateRegex);
+         Matcher matcher = pattern.matcher(lowerBoundDate);
+
+         System.out.println("\nEnter a lower bound for date range (MM/DD/YYYY) (inclusive): ");
+
+         while (!matcher.find())
+         {
+            lowerBoundDate = in.readLine();
+            matcher = pattern.matcher(lowerBoundDate);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         System.out.println("\nEnter an upper bound for the date range (MM/DD/YYYY) (inclusive): ");
+         matcher = pattern.matcher(upperBoundDate);
+
+         while (!matcher.find())
+         {
+            upperBoundDate = in.readLine();
+            matcher = pattern.matcher(upperBoundDate);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         String query = String.format(
+            "SELECT B.bookingID, U.name, B.hotelID, B.roomNumber, B.bookingDate " +
+            "FROM RoomBookings B, Users U, Hotel H " +
+            "WHERE H.hotelID = B.hotelID AND B.customerID = U.userID " +
+            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s';", lowerBoundDate, upperBoundDate
+         );
+
+         int rows = esql.executeQueryAndPrintResult(query);
+         System.out.println("\nTotal number of bookings for your hotels: " + rows);
+
          }catch(Exception e){
          System.err.println (e.getMessage());
-      }
+         }
    }
    public static void viewRegularCustomers(Hotel esql) {}
    public static void placeRoomRepairRequests(Hotel esql) {}
