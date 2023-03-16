@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
 import java.util.Scanner;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /**
  * This class defines a simple embedded SQL utility class that is designed to
  * work with PostgreSQL JDBC drivers.
@@ -300,7 +301,7 @@ public class Hotel {
                 switch (readChoice()){
                    case 1: viewHotels(esql); break;
                    case 2: viewRooms(esql); break;
-                   case 3: bookRooms(esql); break;
+                   case 3: bookRooms(esql, authorisedUser); break;
                    case 4: viewRecentBookingsfromCustomer(esql); break;
                    case 5: updateRoomInfo(esql); break;
                    case 6: viewRecentUpdates(esql); break;
@@ -414,10 +415,10 @@ public class Hotel {
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
          int userNum = esql.executeQuery(query);
-         return null;
+         // return null;
       }catch(Exception e){
          System.err.println (e.getMessage ());
-         return null;
+         // return null;
       }
    }
    public static void viewHotels(Hotel esql) 
@@ -451,7 +452,59 @@ public class Hotel {
          System.err.println (e.getMessage ());
       }
    }
-   public static void bookRooms(Hotel esql) {}
+   public static void bookRooms(Hotel esql, String userID) 
+   {
+      try{
+         Scanner scanner = new Scanner(System.in);
+         int hotelID;
+         int roomNumber;
+         String date = "";
+         String dateRegex = "^(0[1-9]|1[0-2])\\/([0-2][1-9]|3[0-1])\\/\\d{4}$";
+         Pattern pattern = Pattern.compile(dateRegex);
+         System.out.println("\nEnter a Hotel ID: ");
+         hotelID = scanner.nextInt();
+         System.out.println("\nEnter a room number: ");
+         roomNumber = scanner.nextInt();
+         System.out.println("Enter a date in the format of MM/DD/YYYY: ");
+         Matcher matcher = pattern.matcher(date);
+
+         while (!matcher.find())
+         {
+            date = in.readLine();
+            matcher = pattern.matcher(date);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         String query = String.format(
+            "SELECT H.hotelID, R.price, R.roomNumber " +
+            "FROM Rooms R, Hotel H " +
+            "WHERE H.hotelID = %d AND R.hotelID = %d AND R.roomNumber = %d AND NOT EXISTS(" +
+            "SELECT B.roomNumber " +
+            "FROM RoomBookings B " +
+            "WHERE H.hotelID = %d AND B.roomNumber = %d AND bookingDate = '%s');", hotelID, hotelID, roomNumber, hotelID, roomNumber, date);
+         
+         int rows = esql.executeQueryAndPrintResult(query);
+
+         if (rows == 0)
+         {
+            System.out.println("\nSorry, this room is not available at this date.");
+            return;
+         }
+
+         String query2 = String.format(
+            "INSERT INTO RoomBookings (customerID, hotelID, roomNumber, bookingDate) VALUES ('%s', %d, %d, '%s');",
+            userID, hotelID, roomNumber, date
+         );
+
+         esql.executeUpdate(query2);
+         System.out.println("Booking made for " + date + " in Hotel " + hotelID + ", Room " + roomNumber);
+         
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+   }
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
    public static void updateRoomInfo(Hotel esql) {}
    public static void viewRecentUpdates(Hotel esql) {}
