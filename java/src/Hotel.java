@@ -555,11 +555,12 @@ public class Hotel {
             "SELECT B.bookingID, U.name, B.hotelID, B.roomNumber, B.bookingDate " +
             "FROM RoomBookings B, Users U, Hotel H " +
             "WHERE H.hotelID = B.hotelID AND B.customerID = U.userID " +
-            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s';", lowerBoundDate, upperBoundDate
+            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s' " +
+            "ORDER BY B.bookingDate ASC;" , lowerBoundDate, upperBoundDate
          );
 
          int rows = esql.executeQueryAndPrintResult(query);
-         System.out.println("\nTotal number of bookings for your hotels: " + rows);
+         System.out.println("\nTotal number of bookings for your hotels within the range of " + lowerBoundDate + " and " + upperBoundDate + ": " + rows);
 
          }catch(Exception e){
          System.err.println (e.getMessage());
