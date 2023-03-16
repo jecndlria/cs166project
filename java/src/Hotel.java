@@ -306,7 +306,7 @@ public class Hotel {
                    case 5: updateRoomInfo(esql); break;
                    case 6: viewRecentUpdates(esql); break;
                    case 7: viewBookingHistoryofHotel(esql, authorisedUser); break;
-                   case 8: viewRegularCustomers(esql); break;
+                   case 8: viewRegularCustomers(esql, authorisedUser); break;
                    case 9: placeRoomRepairRequests(esql); break;
                    case 10: viewRoomRepairHistory(esql); break;
                    case 20: usermenu = false; break;
@@ -566,9 +566,39 @@ public class Hotel {
          System.err.println (e.getMessage());
          }
    }
-   public static void viewRegularCustomers(Hotel esql) 
+   public static void viewRegularCustomers(Hotel esql, String userID) 
    {
+      try{
+         String checkManager = String.format(
+            "SELECT userType " +
+            "FROM Users " +
+            "WHERE (userType = 'manager' OR userType = 'admin') AND userID = %s;", userID
+         );
+         int isManager = esql.executeQuery(checkManager);
+         if (isManager == 0)
+         {
+            System.out.println("\nYou do not have permission for this option!");
+            return;
+         }
+         Scanner scanner = new Scanner(System.in);
+         int hotelID;
+         System.out.println("\nEnter a hotel ID: ");
+         hotelID = scanner.nextInt();
 
+         String query = String.format(
+            "SELECT U.name, COUNT(*) as NumBookings " +
+            "FROM Users U, RoomBookings B " +
+            "WHERE U.userID = B.customerID AND B.hotelID = %d" +
+            "GROUP BY U.name " +
+            "ORDER BY NumBookings DESC " +
+            "LIMIT 5", hotelID
+         );
+
+         int rows = esql.executeQueryAndPrintResult(query);
+
+         }catch(Exception e){
+         System.err.println (e.getMessage());
+         }
    }
    public static void placeRoomRepairRequests(Hotel esql) {}
    public static void viewRoomRepairHistory(Hotel esql) {}
