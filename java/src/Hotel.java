@@ -426,19 +426,19 @@ public class Hotel {
          double longitude = 1000;
          Scanner scanner = new Scanner(System.in);
          System.out.print("\nEnter Latitude: ");
-         while(latitude >= 90 || latitude <= -90)
+         while(latitude > 90 || latitude < -90)
          {
             latitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
-            if (latitude >= 90 || latitude <= -90)
+            if (latitude > 90 || latitude < -90)
             System.out.print("\nInvalid latitude. Please enter another value: ");
 
          }
          System.out.println("\nLatitude: " + latitude);
          System.out.print("\nEnter Longitude: ");
-         while(longitude >= 180 || longitude <= -180)
+         while(longitude > 180 || longitude < -180)
          {
             longitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
-            if (longitude >= 180 || longitude <= -180)
+            if (longitude > 180 || longitude < -180)
             System.out.print("\nInvalid longitude. Please enter another value: ");
          }
          System.out.println("\nLongitude: " + longitude);
@@ -565,7 +565,10 @@ public class Hotel {
          System.err.println (e.getMessage());
          }
    }
-   public static void viewRegularCustomers(Hotel esql) {}
+   public static void viewRegularCustomers(Hotel esql) 
+   {
+
+   }
    public static void placeRoomRepairRequests(Hotel esql) {}
    public static void viewRoomRepairHistory(Hotel esql) {}
 
