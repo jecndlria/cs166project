@@ -426,14 +426,14 @@ public class Hotel {
          String userID = in.readLine();
          System.out.print("\tEnter password: ");
          String password = in.readLine();
-         String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = '%s' AND u.password = '%s'", userID, password);
+         String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = '%s' AND u.password = '%s';", userID, password);
          int user_type = esql.executeQuery(user_query);
 
          if(user_type == 'manager'){
 
             System.out.print("\tEnter hotelID: ");
             String hotelID = in.readLine();
-            String hotels_managed = String.format("SELECT * FROM Hotel h WHERE h.managerUserID = '%s' AND hotelID = %s", userID, hotelID);
+            String hotels_managed = String.format("SELECT * FROM Hotel h WHERE h.managerUserID = '%s' AND h.hotelID = %s;", userID, hotelID);
             int hotels_managed = esql.executeQuery(hotels_managed);
 
             if(hotels_managed > 0){
@@ -441,12 +441,14 @@ public class Hotel {
                System.out.println("---------");
                System.out.println("1. Update Room Information");
                System.out.println("2. View Recent Updates");
+               System.out.println("Please make your choice: ");
                String choice = in.readLine();
                while(choice != '1' || choice != '2'){
                   System.out.println("---------");
                   System.out.println("Invalid choice!")
                   System.out.println("1. Update Room Information");
                   System.out.println("2. View Recent Updates");
+                  System.out.println("Please make your choice: ");
                   String choice = in.readLine();
                }
                if(choice == '1'){
@@ -460,17 +462,18 @@ public class Hotel {
 
                   String query = String.format("UPDATE Rooms " +
                   "SET price = %s, imageURL = %s " +
-                  "WHERE roomNumber = %s", price, image_url, roomNumber);
+                  "WHERE roomNumber = %s;", price, image_url, roomNumber);
                   int update_info = esql.executeQuery(query);
 
                   //put timestamp stuff here
-                  String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn)" +
-                  "VALUES (%s, %s, %s, %s)", userID, hotelID, roomNumber, timestamp);
+                  String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn) " +
+                  "VALUES (%s, %s, %s, %s);", userID, hotelID, roomNumber, timestamp);
                   int update_info = esql.executeQuery(query2);
 
                }else if(choice == '2'){
                   //view recent updates
-
+                  String query3 = String.format("(SELECT * FROM roomUpdatesLog ORDER BY updatedOn DESC LIMIT 5)");
+                  int last_updated = esql.executeQuery(query3);
                }
 
             }else{
