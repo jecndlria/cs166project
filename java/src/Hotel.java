@@ -305,7 +305,7 @@ public class Hotel {
                    case 4: viewRecentBookingsfromCustomer(esql); break;
                    case 5: updateRoomInfo(esql); break;
                    case 6: viewRecentUpdates(esql); break;
-                   case 7: viewBookingHistoryofHotel(esql); break;
+                   case 7: viewBookingHistoryofHotel(esql, authorisedUser); break;
                    case 8: viewRegularCustomers(esql); break;
                    case 9: placeRoomRepairRequests(esql); break;
                    case 10: viewRoomRepairHistory(esql); break;
@@ -414,11 +414,9 @@ public class Hotel {
             "FROM Rooms r " +
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
-         int userNum = esql.executeQuery(query);
-         // return null;
+         int userNum = esql.executeQueryAndPrintResult(query);
       }catch(Exception e){
          System.err.println (e.getMessage ());
-         // return null;
       }
    }
    public static void viewHotels(Hotel esql) 
@@ -449,7 +447,7 @@ public class Hotel {
          int rows = esql.executeQueryAndPrintResult(query);
          System.out.println("\nTotal number of hotels within 30 units of your location: " + rows);
       }catch(Exception e){
-         System.err.println (e.getMessage ());
+         System.err.println (e.getMessage());
       }
    }
    public static void bookRooms(Hotel esql, String userID) 
@@ -459,7 +457,7 @@ public class Hotel {
          int hotelID;
          int roomNumber;
          String date = "";
-         String dateRegex = "^(0[1-9]|1[0-2])\\/([0-2][1-9]|3[0-1])\\/\\d{4}$";
+         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          System.out.println("\nEnter a Hotel ID: ");
          hotelID = scanner.nextInt();
@@ -486,6 +484,7 @@ public class Hotel {
             "WHERE H.hotelID = %d AND B.roomNumber = %d AND bookingDate = '%s');", hotelID, hotelID, roomNumber, hotelID, roomNumber, date);
          
          int rows = esql.executeQueryAndPrintResult(query);
+         
 
          if (rows == 0)
          {
@@ -499,16 +498,73 @@ public class Hotel {
          );
 
          esql.executeUpdate(query2);
-         System.out.println("Booking made for " + date + " in Hotel " + hotelID + ", Room " + roomNumber);
+         System.out.println("\nBooking made for " + date + " in Hotel " + hotelID + ", Room " + roomNumber);
          
       }catch(Exception e){
-         System.err.println (e.getMessage ());
+         System.err.println (e.getMessage());
       }
    }
    public static void viewRecentBookingsfromCustomer(Hotel esql) {}
    public static void updateRoomInfo(Hotel esql) {}
    public static void viewRecentUpdates(Hotel esql) {}
-   public static void viewBookingHistoryofHotel(Hotel esql) {}
+   public static void viewBookingHistoryofHotel(Hotel esql, String userID) 
+   {
+      try{
+         String checkManager = String.format(
+            "SELECT userType " +
+            "FROM Users " +
+            "WHERE (userType = 'manager' OR userType = 'admin') AND userID = %s;", userID
+         );
+         int isManager = esql.executeQuery(checkManager);
+         if (isManager == 0)
+         {
+            System.out.println("\nYou do not have permission for this option!");
+            return;
+         }
+
+         String lowerBoundDate = "";
+         String upperBoundDate = "";
+         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         Pattern pattern = Pattern.compile(dateRegex);
+         Matcher matcher = pattern.matcher(lowerBoundDate);
+
+         System.out.println("\nEnter a lower bound for date range (MM/DD/YYYY) (inclusive): ");
+
+         while (!matcher.find())
+         {
+            lowerBoundDate = in.readLine();
+            matcher = pattern.matcher(lowerBoundDate);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         System.out.println("\nEnter an upper bound for the date range (MM/DD/YYYY) (inclusive): ");
+         matcher = pattern.matcher(upperBoundDate);
+
+         while (!matcher.find())
+         {
+            upperBoundDate = in.readLine();
+            matcher = pattern.matcher(upperBoundDate);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
+
+         String query = String.format(
+            "SELECT B.bookingID, U.name, B.hotelID, B.roomNumber, B.bookingDate " +
+            "FROM RoomBookings B, Users U, Hotel H " +
+            "WHERE H.hotelID = B.hotelID AND B.customerID = U.userID " +
+            "AND B.bookingDate >= '%s' AND B.bookingDate <= '%s';", lowerBoundDate, upperBoundDate
+         );
+
+         int rows = esql.executeQueryAndPrintResult(query);
+         System.out.println("\nTotal number of bookings for your hotels: " + rows);
+
+         }catch(Exception e){
+         System.err.println (e.getMessage());
+         }
+   }
    public static void viewRegularCustomers(Hotel esql) {}
    public static void placeRoomRepairRequests(Hotel esql) {}
    public static void viewRoomRepairHistory(Hotel esql) {}
