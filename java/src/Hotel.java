@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.util.Scanner;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -400,7 +401,6 @@ public class Hotel {
 
 // Rest of the functions definition go in here
 
-   public static void viewHotels(Hotel esql) {}
    public static void viewRooms(Hotel esql) {
       try{
          System.out.print("\tEnter hotelID: ");
@@ -414,6 +414,37 @@ public class Hotel {
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
          int available_rooms = esql.executeQuery(query);
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+      }
+   }
+   public static void viewHotels(Hotel esql) 
+   {
+      try{
+         double latitude = 100;
+         double longitude = 1000;
+         Scanner scanner = new Scanner(System.in);
+         System.out.print("\nEnter Latitude: ");
+         while(latitude >= 90 || latitude <= -90)
+         {
+            latitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
+            if (latitude >= 90 || latitude <= -90)
+            System.out.print("\nInvalid latitude. Please enter another value: ");
+
+         }
+         System.out.println("\nLatitude: " + latitude);
+         System.out.print("\nEnter Longitude: ");
+         while(longitude >= 180 || longitude <= -180)
+         {
+            longitude = Math.round(scanner.nextDouble() * 1e6) / 1e6;
+            if (longitude >= 180 || longitude <= -180)
+            System.out.print("\nInvalid longitude. Please enter another value: ");
+         }
+         System.out.println("\nLongitude: " + longitude);
+
+         String query = String.format("SELECT hotelID, hotelName, dateEstablished FROM Hotel WHERE calculate_distance(%f, %f, latitude, longitude) <= 30;", latitude, longitude);
+         int rows = esql.executeQueryAndPrintResult(query);
+         System.out.println("\nTotal number of hotels within 30 units of your location: " + rows);
       }catch(Exception e){
          System.err.println (e.getMessage ());
       }
