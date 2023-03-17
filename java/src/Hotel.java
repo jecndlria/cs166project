@@ -454,15 +454,19 @@ public class Hotel {
    }
    public static void bookRooms(Hotel esql) {}
    public static void viewRecentBookingsfromCustomer(Hotel esql, String userID) {
-      System.out.print("Displaying your last 5 recent bookings... \n");
+      try{
+         System.out.print("Displaying your last 5 recent bookings... \n");
 
-      String query = String.format("SELECT * FROM (SELECT b.hotelID, b.roomNumber, b.bookingDate, r.price as billingInfo "+
-      "FROM RoomBookings b, Rooms r WHERE b.customerID = %s " +
-      "AND b.hotelID = r.hotelID AND b.roomNumber = r.roomNumber " +
-      "ORDER BY b.bookingDate LIMIT 5) as Top5 " +
-      "ORDER BY bookingDate ASC;", userID);
+         String query = String.format("SELECT * FROM (SELECT b.hotelID, b.roomNumber, b.bookingDate, r.price as billingInfo "+
+         "FROM RoomBookings b, Rooms r WHERE b.customerID = %s " +
+         "AND b.hotelID = r.hotelID AND b.roomNumber = r.roomNumber " +
+         "ORDER BY b.bookingDate LIMIT 5) as Top5 " +
+         "ORDER BY bookingDate ASC;", userID);
 
-      int top5bookings = esql.executeQueryAndPrintResult(query);
+         int top5bookings = esql.executeQueryAndPrintResult(query);
+      }catch(Exception e){
+         System.err.println (e.getMessage());
+      }
    }
    public static void updateRoomInfo(Hotel esql, String userID) {
       try{
@@ -475,13 +479,14 @@ public class Hotel {
          }
 
          int hotels_managed = 0;
+         String hotelID = "";
 
          while(hotels_managed == 0){
             System.out.print("\tEnter hotelID: ");
-            String hotelID = in.readLine();
-            String hotels_managed = String.format("SELECT * FROM Hotel h WHERE h.managerUserID = %s " +
+            hotelID = in.readLine();
+            String hotelstring = String.format("SELECT * FROM Hotel h WHERE h.managerUserID = %s " +
             "AND h.hotelID = %s;", userID, hotelID);
-            int hotels_managed = esql.executeQuery(hotels_managed);
+            hotels_managed = esql.executeQuery(hotelstring);
             if(hotels_managed == 0){
                System.out.print("\tPlease pick a hotel you manage.");
             }
@@ -495,89 +500,101 @@ public class Hotel {
          String image_url = in.readLine();
 
          String query = String.format("UPDATE Rooms " +
-         "SET price = %s, imageURL = %s " +
+         "SET price = %s, imageURL = %s" +
          "WHERE roomNumber = %s;", price, image_url, roomNumber);
-         int update_info = esql.executeQuery(query);
+         esql.executeUpdate(query);
 
          Timestamp temp = new Timestamp(System.currentTimeMillis());
          String timestamp = temp.toString(); // just to be safe... i think it turns into a timestamp in postgre
          String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn) " +
          "VALUES (%s, %s, %s, %s);", userID, hotelID, roomNumber, timestamp);
-         int update_info = esql.executeQuery(query2);
+         esql.executeUpdate(query2);
 
-         System.out.print("\tRoom has been updated!")
+         System.out.print("\tRoom has been updated!");
 
       }catch(Exception e){
          System.err.println (e.getMessage ());
       }
    }
    public static void viewRecentUpdates(Hotel esql, String userID) {
-      String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
-      "(u.userType = 'manager' OR u.userType = 'admin');", userID);
-      int user_type = esql.executeQuery(user_query);
+      try{
+         String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
+         "(u.userType = 'manager' OR u.userType = 'admin');", userID);
+         int user_type = esql.executeQuery(user_query);
 
-      if(user_type == 0){
-         System.out.print("\tYou must be a manager to view update info.");
-         return;
+         if(user_type == 0){
+            System.out.print("\tYou must be a manager to view update info.\n");
+            return;
+         }
+
+         System.out.print("\tViewing the last 5 recent updates...\n");
+         String query3 = String.format("SELECT * FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
+         "ORDER BY updatedOn DESC LIMIT 5) AS last5 ORDER BY updatedOn ASC;", userID);
+         int last_updated = esql.executeQueryAndPrintResult(query3);
+      }catch(Exception e){
+         System.err.println (e.getMessage());
       }
-
-      System.out.print("\tViewing the last 5 recent updates...")
-      String query3 = String.format("SELECT * FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
-      "ORDER BY updatedOn DESC LIMIT 5) AS last5 ORDER BY updatedOn ASC;", userID);
-      int last_updated = esql.executeQueryAndPrintResult(query3);
 
    }
    public static void viewBookingHistoryofHotel(Hotel esql) {}
    public static void viewRegularCustomers(Hotel esql) {}
    public static void placeRoomRepairRequests(Hotel esql, String userID) {
-      String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
-      "(u.userType = 'manager' OR u.userType = 'admin');", userID);
-      int user_type = esql.executeQuery(user_query);
+      try{
+         String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
+         "(u.userType = 'manager' OR u.userType = 'admin');", userID);
+         int user_type = esql.executeQuery(user_query);
 
-      if(user_type == 0){
-         System.out.print("\tYou must be a manager to view update info.");
-         return;
+         if(user_type == 0){
+            System.out.print("\tYou must be a manager to view update info.\n");
+            return;
+         }
+
+         System.out.print("\tFill in the following information to submit a room repair request.\n");
+         System.out.print("\tEnter hotelID: ");
+         String hotelID = in.readLine();
+         System.out.print("\tEnter roomNumber: ");
+         String roomNumber = in.readLine();
+         System.out.print("\tEnter companyID: ");
+         String companyID = in.readLine();
+
+         //update RoomRepairs
+         String repair = String.format("INSERT INTO roomRepairs (companyID, hotelID, roomNumber, repairDate) " +
+         "VALUES (%s, %s, %s, (SELECT CURRENT_DATE));", companyID, hotelID, roomNumber);
+         esql.executeUpdate(repair);
+         
+         //update RoomRepairRequests
+         String repair_id = "SELECT count(*) FROM roomRepairs;";
+         List<List<String>> repairID = esql.executeQueryAndReturnResult(repair_id);
+         String query2 = String.format("INSERT INTO roomRepairRequests (managerID, repairID) " +
+         "VALUES (%s, %s);", userID, repairID.get(0));
+         esql.executeUpdate(query2);
+
+         System.out.print("\tRequest has been submitted!\n");
+      }catch(Exception e){
+         System.err.println (e.getMessage());
       }
-
-      System.out.print("\tFill in the following information to submit a room repair request.");
-      System.out.print("\tEnter hotelID: ");
-      String hotelID = in.readLine();
-      System.out.print("\Enter roomNumber: ");
-      String roomNumber = in.readLine();
-      System.out.print("\tEnter companyID: ");
-      String companyID = in.readLine();
-
-      //update RoomRepairs
-      String repair = String.format("INSERT INTO roomRepairs (companyID, hotelID, roomNumber, repairDate) " +
-      "VALUES (%s, %s, %s, (SELECT CURRENT_DATE));", companyID, hotelID, roomNumber);
-      int roomrepairs = esql.executeQuery(repair);
-      
-      //update RoomRepairRequests
-      String repair_id = String.format("SELECT count(*) FROM roomRepairs;");
-      int temp = esql.executeQuery(repair_id);
-      int repairID = temp.getInt(1);
-      String query2 = String.format("INSERT INTO roomRepairRequests (managerID, repairID) " +
-      "VALUES (%s, %s);", userID, repairID);
-      int update_info = esql.executeQuery(query2);
-
-      System.out.print("\tRequest has been submitted!")
 
    }
    public static void viewRoomRepairHistory(Hotel esql, String userID) {
-      String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
-      "(u.userType = 'manager' OR u.userType = 'admin');", userID);
-      int user_type = esql.executeQuery(user_query);
+      try{
+         String user_query = String.format("SELECT u.userType FROM Users u WHERE u.userID = %s AND " +
+         "(u.userType = 'manager' OR u.userType = 'admin');", userID);
+         int user_type = esql.executeQuery(user_query);
 
-      if(user_type == 0){
-         System.out.print("\tYou must be a manager to view update info.");
-         return;
+         if(user_type == 0){
+            System.out.print("\tYou must be a manager to view update info.");
+            return;
+         }
+
+         System.out.print("\tViewing room request history...\n");
+         String query = String.format("SELECT a.companyID as company, a.hotelID as hotel, a.roomNumber as room, a.repairDate" +
+         "FROM roomRepairs a, roomRepairRequests b " +
+         "WHERE b.managerID = %s " +
+         "AND  a.repairID = b.repairID;", userID);
+         int last_updated = esql.executeQueryAndPrintResult(query);
+      }catch(Exception e){
+         System.err.println (e.getMessage());
       }
-
-      System.out.print("\tViewing room request history...");
-      String query = String.format("SELECT a.companyID, a.hotelID, a.roomNumber, a.repairDate FROM roomRepairs a, roomRepairRequests b " +
-      "WHERE b.managerID = %s " +
-      "AND  a.repairID = b.repairID;", userID);
-      int last_updated = esql.executeQueryAndPrintResult(query);
    }
 
 }//end Hotel
