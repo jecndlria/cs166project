@@ -585,6 +585,21 @@ public class Hotel {
          System.out.println("\nEnter a hotel ID: ");
          hotelID = scanner.nextInt();
 
+         String checkIfManager = String.format(
+            "SELECT managerUserID " +
+            "FROM Hotel " +
+            "WHERE managerUserID = %s AND hotelID = %d;",
+            userID, hotelID
+         );
+
+         int managesHotel = esql.executeQuery(checkIfManager);
+
+         if (managesHotel == 0)
+         {
+            System.out.println("\nYou do not manage this hotel!");
+            return;
+         }
+
          String query = String.format(
             "SELECT U.name, COUNT(*) as NumBookings " +
             "FROM Users U, RoomBookings B " +
