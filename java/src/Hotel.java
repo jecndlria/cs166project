@@ -28,6 +28,8 @@ import java.util.Scanner;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.sql.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -408,15 +410,28 @@ public class Hotel {
       try{
          System.out.print("\tEnter hotelID: ");
          String hotelID = in.readLine();
-         System.out.print("\tEnter date (in the form month/day/year): ");
-         String date = in.readLine();
+
+         String date = "";
+         String dateRegex = "^(1[0-2]|[1-9]|0[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         Pattern pattern = Pattern.compile(dateRegex);
+         System.out.print("\tEnter date in the format MM/DD/YYYY: ");
+         Matcher matcher = pattern.matcher(date);
+
+         while (!matcher.find())
+         {
+            date = in.readLine();
+            matcher = pattern.matcher(date);
+            if (!matcher.find())
+            System.out.print("\nInvalid date. Please enter another date: ");
+            else break;
+         }
 
          String query = String.format(
-            "SELECT r.roomNumber, r.price " +
+            "SELECT r.roomNumber as room, r.price " +
             "FROM Rooms r " +
             "WHERE r.hotelID = %s AND NOT EXISTS (SELECT b.roomNumber " +
             "FROM RoomBookings b WHERE r.roomNumber = b.roomNumber AND b.bookingDate = '%s');", hotelID, date);
-         int available_rooms = esql.executeQuery(query);
+         int available_rooms = esql.executeQueryAndPrintResult(query);
       }catch(Exception e){
          System.err.println (e.getMessage ());
       }
@@ -455,9 +470,9 @@ public class Hotel {
    public static void bookRooms(Hotel esql) {}
    public static void viewRecentBookingsfromCustomer(Hotel esql, String userID) {
       try{
-         System.out.print("Displaying your last 5 recent bookings... \n");
+         System.out.print("\tDisplaying your last 5 recent bookings... \n");
 
-         String query = String.format("SELECT * FROM (SELECT b.hotelID, b.roomNumber, b.bookingDate, r.price as billingInfo "+
+         String query = String.format("SELECT * FROM (SELECT b.hotelID as hotel, b.roomNumber as room, b.bookingDate, r.price as billingInfo "+
          "FROM RoomBookings b, Rooms r WHERE b.customerID = %s " +
          "AND b.hotelID = r.hotelID AND b.roomNumber = r.roomNumber " +
          "ORDER BY b.bookingDate LIMIT 5) as Top5 " +
@@ -474,7 +489,7 @@ public class Hotel {
          int user_type = esql.executeQuery(user_query);
 
          if(user_type == 0){
-            System.out.print("\tYou must be a manager to update room info.");
+            System.out.print("\tYou must be a manager to update room info.\n");
             return;
          }
 
@@ -492,8 +507,20 @@ public class Hotel {
             }
          }
 
-         System.out.print("\tEnter room number to update: ");
-         String roomNumber = in.readLine();
+         int room_exists = 0;
+         String roomNumber = "";
+         while(room_exists ==0){
+            System.out.print("\tEnter room number to update: ");
+            roomNumber = in.readLine();
+            String roomstring = String.format("SELECT * FROM Rooms WHERE " +
+            "hotelID = %s AND roomNumber = %s;", hotelID, roomNumber);
+            room_exists = esql.executeQuery(roomstring);
+            if(room_exists == 0){
+               String printthis = String.format("\tThere is no room number %s in hotel %s.\n", roomNumber, hotelID);
+               System.out.print(printthis);
+            }
+         }
+
          System.out.print("\tUpdate price: ");
          String price = in.readLine();
          System.out.print("\tUpdate image url: ");
@@ -528,7 +555,8 @@ public class Hotel {
          }
 
          System.out.print("\tViewing the last 5 recent updates...\n");
-         String query3 = String.format("SELECT updateNumber as update, hotelID as hotel, roomNumber as room, updatedOn FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
+         String query3 = String.format("SELECT updateNumber as update, hotelID as hotel, " +
+         "roomNumber as room, updatedOn FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
          "ORDER BY updatedOn DESC LIMIT 5) AS last5 ORDER BY updatedOn ASC;", userID);
          int last_updated = esql.executeQueryAndPrintResult(query3);
       }catch(Exception e){
@@ -550,10 +578,39 @@ public class Hotel {
          }
 
          System.out.print("\tFill in the following information to submit a room repair request.\n");
-         System.out.print("\tEnter hotelID: ");
-         String hotelID = in.readLine();
-         System.out.print("\tEnter roomNumber: ");
-         String roomNumber = in.readLine();
+         
+         int hotels_managed = 0;
+         String hotelID = "";
+
+         while(hotels_managed == 0){
+            System.out.print("\tEnter hotelID: ");
+            hotelID = in.readLine();
+            String hotelstring = String.format("SELECT * FROM Hotel h WHERE h.managerUserID = %s " +
+            "AND h.hotelID = %s;", userID, hotelID);
+            hotels_managed = esql.executeQuery(hotelstring);
+            if(hotels_managed == 0){
+               System.out.print("\tPlease pick a hotel you manage.\n");
+            }
+         }
+         //System.out.print("\tEnter hotelID: ");
+         //String hotelID = in.readLine();
+
+         //System.out.print("\tEnter roomNumber: ");
+         //String roomNumber = in.readLine();
+         int room_exists = 0;
+         String roomNumber = "";
+         while(room_exists ==0){
+            System.out.print("\tEnter room number to update: ");
+            roomNumber = in.readLine();
+            String roomstring = String.format("SELECT * FROM Rooms WHERE " +
+            "hotelID = %s AND roomNumber = %s;", hotelID, roomNumber);
+            room_exists = esql.executeQuery(roomstring);
+            if(room_exists == 0){
+               String printthis = String.format("\tThere is no room number %s in hotel %s.\n", roomNumber, hotelID);
+               System.out.print(printthis);
+            }
+         }
+
          System.out.print("\tEnter companyID: ");
          String companyID = in.readLine();
 
@@ -582,12 +639,13 @@ public class Hotel {
          int user_type = esql.executeQuery(user_query);
 
          if(user_type == 0){
-            System.out.print("\tYou must be a manager to view update info.");
+            System.out.print("\tYou must be a manager to view update info.\n");
             return;
          }
 
          System.out.print("\tViewing room request history...\n");
-         String query = String.format("SELECT a.companyID as company, a.hotelID as hotel, a.roomNumber as room, a.repairDate " +
+         String query = String.format("SELECT a.companyID as company, " +
+         "a.hotelID as hotel, a.roomNumber as room, a.repairDate " +
          "FROM roomRepairs a, roomRepairRequests b " +
          "WHERE b.managerID = %s " +
          "AND  a.repairID = b.repairID;", userID);
