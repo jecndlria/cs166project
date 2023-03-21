@@ -488,7 +488,7 @@ public class Hotel {
             "AND h.hotelID = %s;", userID, hotelID);
             hotels_managed = esql.executeQuery(hotelstring);
             if(hotels_managed == 0){
-               System.out.print("\tPlease pick a hotel you manage.");
+               System.out.print("\tPlease pick a hotel you manage.\n");
             }
          }
 
@@ -500,17 +500,17 @@ public class Hotel {
          String image_url = in.readLine();
 
          String query = String.format("UPDATE Rooms " +
-         "SET price = %s, imageURL = %s" +
+         "SET price = %s, imageURL = '%s' " +
          "WHERE roomNumber = %s;", price, image_url, roomNumber);
          esql.executeUpdate(query);
 
          Timestamp temp = new Timestamp(System.currentTimeMillis());
          String timestamp = temp.toString(); // just to be safe... i think it turns into a timestamp in postgre
          String query2 = String.format("INSERT INTO RoomUpdatesLog (managerID, hotelID, roomNumber, updatedOn) " +
-         "VALUES (%s, %s, %s, %s);", userID, hotelID, roomNumber, timestamp);
+         "VALUES (%s, %s, %s, '%s');", userID, hotelID, roomNumber, timestamp);
          esql.executeUpdate(query2);
 
-         System.out.print("\tRoom has been updated!");
+         System.out.print("\tRoom info has been successfully updated!\n");
 
       }catch(Exception e){
          System.err.println (e.getMessage ());
@@ -528,7 +528,7 @@ public class Hotel {
          }
 
          System.out.print("\tViewing the last 5 recent updates...\n");
-         String query3 = String.format("SELECT * FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
+         String query3 = String.format("SELECT updateNumber as update, hotelID as hotel, roomNumber as room, updatedOn FROM (SELECT * FROM roomUpdatesLog WHERE managerID = %s " +
          "ORDER BY updatedOn DESC LIMIT 5) AS last5 ORDER BY updatedOn ASC;", userID);
          int last_updated = esql.executeQueryAndPrintResult(query3);
       }catch(Exception e){
@@ -566,7 +566,7 @@ public class Hotel {
          String repair_id = "SELECT count(*) FROM roomRepairs;";
          List<List<String>> repairID = esql.executeQueryAndReturnResult(repair_id);
          String query2 = String.format("INSERT INTO roomRepairRequests (managerID, repairID) " +
-         "VALUES (%s, %s);", userID, repairID.get(0));
+         "VALUES (%s, %s);", userID, repairID.get(0).get(0));
          esql.executeUpdate(query2);
 
          System.out.print("\tRequest has been submitted!\n");
@@ -587,7 +587,7 @@ public class Hotel {
          }
 
          System.out.print("\tViewing room request history...\n");
-         String query = String.format("SELECT a.companyID as company, a.hotelID as hotel, a.roomNumber as room, a.repairDate" +
+         String query = String.format("SELECT a.companyID as company, a.hotelID as hotel, a.roomNumber as room, a.repairDate " +
          "FROM roomRepairs a, roomRepairRequests b " +
          "WHERE b.managerID = %s " +
          "AND  a.repairID = b.repairID;", userID);
