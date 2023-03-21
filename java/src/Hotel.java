@@ -600,7 +600,7 @@ public class Hotel {
          int room_exists = 0;
          String roomNumber = "";
          while(room_exists ==0){
-            System.out.print("\tEnter room number to update: ");
+            System.out.print("\tEnter room number: ");
             roomNumber = in.readLine();
             String roomstring = String.format("SELECT * FROM Rooms WHERE " +
             "hotelID = %s AND roomNumber = %s;", hotelID, roomNumber);
