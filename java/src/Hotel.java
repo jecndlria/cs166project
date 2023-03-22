@@ -410,7 +410,7 @@ public class Hotel {
          System.out.print("\tEnter hotelID: ");
          String hotelID = in.readLine();
          String date = "";
-         String dateRegex = "^(1[0-2]|[1-9]|0[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         String dateRegex = "^(0?[1-9]|1[0-2])\\/(0?[1-9]|[12][0-9]|3[01])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          System.out.print("\tEnter date in the format MM/DD/YYYY: ");
          Matcher matcher = pattern.matcher(date);
@@ -472,7 +472,7 @@ public class Hotel {
          int hotelID;
          int roomNumber;
          String date = "";
-         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         String dateRegex = "^(0?[1-9]|1[0-2])\\/(0?[1-9]|[12][0-9]|3[01])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          System.out.println("\nEnter a Hotel ID: ");
          hotelID = scanner.nextInt();
@@ -631,7 +631,7 @@ public class Hotel {
 
          String lowerBoundDate = "";
          String upperBoundDate = "";
-         String dateRegex = "^(1[0-2]|[1-9])\\/(3[01]|[12][0-9]|[1-9])\\/\\d{4}$";
+         String dateRegex = "^(0?[1-9]|1[0-2])\\/(0?[1-9]|[12][0-9]|3[01])\\/\\d{4}$";
          Pattern pattern = Pattern.compile(dateRegex);
          Matcher matcher = pattern.matcher(lowerBoundDate);
 
